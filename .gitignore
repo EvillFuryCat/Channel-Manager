@@ -2,6 +2,8 @@
 
 #enviroments
 .env
+env.py
+@FuryCats.session
 # Editors
 .vscode/
 .idea/

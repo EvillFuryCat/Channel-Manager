@@ -7,7 +7,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-aiogram = "^3.0.0"
+telethon = "^1.30.3"
+aiogram = "^3.1.0"
+schedule = "^1.2.0"
+redis = "^5.0.0"
+openai = "^0.28.1"
 
 
 [build-system]

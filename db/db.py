@@ -12,8 +12,7 @@ class RedisManager:
         self.redis.close()
 
     def save_in_redis(self, keys: list, value: str, lifetime: int = -1) -> None:
-        key = ":".join(keys)
-        self.redis.set(key, value, lifetime)
+        self.redis.set(keys, value, lifetime)
 
     def get_data(self, key: str):
         result = self.redis.get(key)

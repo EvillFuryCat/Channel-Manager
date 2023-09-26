@@ -1,7 +1,7 @@
 from telethon.sync import TelegramClient
 from db.db import RedisManager
 from ChatGPT.GPT import GPTAnalytics, GPT_KEY
-
+from db.config import Singleton
 import env
 import schedule
 import time
@@ -11,7 +11,7 @@ API_ID = env.API_TOKEN
 API_HASH = env.API_HASH
 CLIENT_NAME = env.USERNAME
 CHANNELS = env.CHANNELS
-PROMPT = "Выдели из этого текста три ключевых слова, обьедини эти слова в список"
+PROMPT = "Выдели из этого текста три ключевых слова. Ответ должен быть ввиде трех слов, на английском"
 
 logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.WARNING
@@ -40,20 +40,25 @@ def text_preparation():
 
 
 def categorize():
-    # categorize_GPT = GPTAnalytics(GPT_KEY)
+    categorize_GPT = GPTAnalytics(GPT_KEY)
     posts = text_preparation()
-    for post in posts:
-        # list_of_category = categorize_GPT.chat_with_model(post)
-        print(post)
+    with RedisManager() as db:
+        for post in posts:
+            list_of_category = categorize_GPT.chat_with_model(post)
+            print(list_of_category)
+            print(type(list_of_category))
+            db.save_in_redis(list_of_category, post, 259200)
+            text = db.get_data(list_of_category).decode("utf-8")
+            print(text)
 
 
 def main():
-    channel_username = CHANNELS
-    for channel in channel_username:
-        messages = get_channel_messages(API_ID, API_HASH, channel)
-        for message in messages:
-            # categorize_GPT = GPTAnalytics(API_KEY)
-            # categorize_GPT.chat_with_model(message)
+    # channel_username = CHANNELS
+    # for channel in channel_username:
+    #     messages = get_channel_messages(API_ID, API_HASH, channel)
+    #     for message in messages:
+    #         # categorize_GPT = GPTAnalytics(API_KEY)
+    #         # categorize_GPT.chat_with_model(message)
             with RedisManager() as db:
                 db.save_in_redis(channel, message.message, 259200)
                 text = db.get_data(channel).decode("utf-8")

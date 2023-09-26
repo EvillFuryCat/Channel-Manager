@@ -10,8 +10,9 @@ API_HASH = env.API_HASH
 CLIENT_NAME = env.USERNAME
 CHANNELS = env.CHANNELS
 
-logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s',
-                    level=logging.WARNING)
+logging.basicConfig(
+    format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.WARNING
+)
 
 
 def get_channel_messages(api_id, api_hash, channel_username):
@@ -27,14 +28,14 @@ def main():
         for message in messages:
             with Singleton.get_connection() as db:
                 db.set(channel, message.message, 259200)
-                text = db.get(channel).decode('utf-8')
+                text = db.get(channel).decode("utf-8")
                 print(channel)
-                print(message)
-            
+                print(text)
 
-main()
-#schedule.every(5).minutes.do(main)
 
-#while True:
-#    schedule.run_pending()
-#    time.sleep(1)
+# main()
+schedule.every(5).minutes.do(main)
+
+while True:
+   schedule.run_pending()
+   time.sleep(1)

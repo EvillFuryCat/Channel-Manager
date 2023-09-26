@@ -3,7 +3,7 @@ from typing import Any
 import openai
 
 
-API_KEY = "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"
+GPT_KEY = "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"
 
 
 class GPTAnalytics:

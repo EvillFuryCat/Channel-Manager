@@ -1,31 +1,49 @@
-# def check_similaritys(db, target_string):
-#     # Создание клиента Redis
-#     # Получение списка всех ключей
-#     keys = db.get_keys()
-#     # Проверка каждого ключа
-#     for key in keys:
-#         # Преобразование ключа из байтов в строку
-#         key = key.decode('utf-8')
-#         # Получение значения по текущему ключу из Redis
-#         stored_string = db.get_data(key)
-
-#         if stored_string is not None:
-#             # Преобразование значения из байтов в строку
-#             #stored_string = stored_string.decode('utf-8')
-
-#             # Разделение строк на отдельные слова
-#             #stored_words = stored_string.split(", ")
-#             target_words = target_string.split(", ")
-#             print(target_words, "target_words")
-#             #print(stored_words, "stored_words")
+from ChatGPT.GPT import GPTAnalytics, GPT_KEY
+from db.db import RedisManager
+from telethon import TelegramClient
+import env
 
 
-#             # Проверка наличия совпадений
-#             for word in stored_words:
-#                 if word in target_words:
-#                     return True
+CLIENT_NAME = env.USERNAME
+CHANNELS = env.CHANNELS
+PROMPT = "Select three key words from this text. The answer should always be in three words and in English"
 
-#     return False
+
+async def get_list_channel_messages(api_id: str, api_hash: str):
+    channel_username = CHANNELS
+    list_of_posts = []
+    async with TelegramClient(CLIENT_NAME, api_id, api_hash) as client:
+        for channel in channel_username:
+            messages = await client.get_messages(channel)
+            for message in messages:
+                list_of_posts.append(message.message)
+    return list_of_posts
+
+
+def text_preparation(posts):
+    # posts = get_list_channel_messages(API_ID, API_HASH)
+    ready_text = []
+    for post in posts:
+        lines = post.strip().split("\n")
+        aligned_text = "".join(line.strip() for line in lines)
+        ready_text.append(aligned_text)
+    return ready_text
+
+
+async def categorize(posts) -> None:
+    categorize_gpt = GPTAnalytics(GPT_KEY)
+    # posts = text_preparation()
+    with RedisManager() as redis:
+        for post in posts:
+            list_of_category = categorize_gpt.chat_with_model(PROMPT, post)
+            # возможно, перенесу это в другую функцию
+            if check_similarity(redis, list_of_category) is True:
+                break
+            redis.save_in_redis(list_of_category, post, 259200)
+
+
+def rewrite():
+    pass
 
 
 def check_similarity(db, target_string: str):

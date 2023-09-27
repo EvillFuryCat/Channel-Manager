@@ -1,9 +1,11 @@
+#Здесь второй варинат модуля utils, используется сохранение при помощи id сообщения, будет полезно, если каналы не дублируют сообщения друг друга
+
 from ChatGPT.GPT import GPTAnalytics
 from db.db import RedisManager
 from telethon import TelegramClient
 import env
 
-
+    
 CLIENT_NAME = env.USERNAME
 CHANNELS = env.CHANNELS
 GPT_KEY = env.GPT_KEY
@@ -33,32 +35,29 @@ def text_preparation(posts):
     return ready_text
 
 
-async def categorize(id, posts) -> None:
-    categorize_gpt = GPTAnalytics(GPT_KEY)
-    #posts = text_preparation()
+async def double_check(id_list, posts) -> None:
     with RedisManager() as redis:
-        for post in posts:
-            list_of_category = categorize_gpt.chat_with_model(PROMPT, post)
-            # возможно, перенесу это в другую функцию
-            if check_similarity(redis, list_of_category) is True:
-                break
-            redis.save_in_redis(list_of_category, post, 259200)
+        for i in range(len(id_list)):
+            id_post = id_list[i]
+            post = posts[i]
+            if redis.get_data(id_post) is None:
+                redis.save_in_redis(id_post, post, 259200)
 
 
 def rewrite():
     pass
 
 
-def check_similarity(db, target_string: str) -> bool:
-    if db.get_data(target_string) is not None:
-        return True
-    else:
-        target_words = target_string.split(", ")
-        keys = db.get_keys()
-        for target_key in target_words:
-            for key in keys:
-                key = key.decode("utf-8").split(", ")
-                if target_key in key:
-                    return True
+# def check_similarity(db, target_string: str) -> bool:
+#     if db.get_data(target_string) is not None:
+#         return True
+#     else:
+#         target_words = target_string.split(", ")
+#         keys = db.get_keys()
+#         for target_key in target_words:
+#             for key in keys:
+#                 key = key.decode("utf-8").split(", ")
+#                 if target_key in key:
+#                     return True
 
-    return False
+#     return False

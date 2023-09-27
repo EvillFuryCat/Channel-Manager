@@ -2,8 +2,8 @@ import os
 from typing import Any
 import openai
 
-
-GPT_KEY = "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"
+# GPT = env.GPT_KEY
+# GPT_KEY = "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"
 
 
 class GPTAnalytics:
@@ -42,10 +42,10 @@ class GPTAnalytics:
 #     print(chat_response)
 #     messages.append([{"role": "assistant", "content": chat_response}])
 
-if __name__ == "__main__":
-    assistant = GPTAnalytics(API_KEY)
+# if __name__ == "__main__":
+#     assistant = GPTAnalytics(API_KEY)
 
-    while True:
-        user_msg = input()
-        response = assistant.chat_with_model(user_msg)
-        print(response)
+#     while True:
+#         user_msg = input()
+#         response = assistant.chat_with_model(user_msg)
+#         print(response)

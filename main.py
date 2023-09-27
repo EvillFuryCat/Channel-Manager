@@ -15,9 +15,9 @@ logging.basicConfig(
 
 
 async def main():
-    posts = await get_list_channel_messages(API_ID, API_HASH)
+    id, posts = await get_list_channel_messages(API_ID, API_HASH)
     ready_text = text_preparation(posts)
-    define_category = await categorize(ready_text)
+    define_category = await categorize(id, ready_text)
 
 asyncio.run(main())
 # schedule.every(5).minutes.do(main)
@@ -25,3 +25,5 @@ asyncio.run(main())
 # while True:
 #    schedule.run_pending()
 #    time.sleep(1)
+
+# asyncio.run(categorize(API_ID, API_HASH))

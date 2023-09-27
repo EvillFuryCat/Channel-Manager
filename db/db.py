@@ -17,3 +17,7 @@ class RedisManager:
     def get_data(self, key: str):
         result = self.redis.get(key)
         return result
+
+    def get_keys(self):
+        result = self.redis.keys()
+        return result

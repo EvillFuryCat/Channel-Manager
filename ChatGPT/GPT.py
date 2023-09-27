@@ -11,11 +11,11 @@ class GPTAnalytics:
         self.api_key = api_key
         openai.api_key = api_key
 
-    def chat_with_model(self, user_msg: str) -> Any:
-        system_msg = "You are a useful assistant knowledgeable in text analysis"
+    def chat_with_model(self, prompt, user_msg: str) -> Any:
+        system_msg = "You are a helpful assistant who answers in just three words"
         messages = [
             {"role": "system", "content": system_msg},
-            {"role": "user", "content": user_msg},
+            {"role": "user", "content": f"{prompt}\n{user_msg}"},
         ]
 
         completion = openai.ChatCompletion.create(

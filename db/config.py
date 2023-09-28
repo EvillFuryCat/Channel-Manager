@@ -7,10 +7,11 @@ DB: int
 
 
 class Singleton:
-    _instance = None
+    _instances = {}
 
     @staticmethod
-    def get_connection() -> Redis:
-        if not Singleton._instance:
-            Singleton._instance = Redis(host="0.0.0.0", port=6379, db=0)
-        return Singleton._instance
+    def get_connection(host: str, port: int, db: int) -> Redis:
+        connection_key = (host, port, db)
+        if connection_key not in Singleton._instances:
+            Singleton._instances[connection_key] = Redis(host=host, port=port, db=db)
+        return Singleton._instances[connection_key]

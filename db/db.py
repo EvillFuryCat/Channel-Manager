@@ -2,8 +2,11 @@ from .config import Singleton
 
 
 class RedisManager:
-    def __init__(self) -> None:
-        self.redis = Singleton.get_connection()
+    def __init__(self, host: str, port: int, db: int) -> None:
+        self.host = host
+        self.port = port
+        self.db = db
+        self.redis = Singleton.get_connection(host=host, port=port, db=db)
 
     def __enter__(self):
         return self

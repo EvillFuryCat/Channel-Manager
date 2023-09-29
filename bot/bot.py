@@ -4,11 +4,18 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import MessageEntity
 
 from db.db import RedisManager
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    filename="log.json",
+    format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
+    level=logging.WARNING,
+)
+
+logger = logging.getLogger(__name__)
 
 BOT_TOKEN = "6318131538:AAFVgE9nHLvQMMYMJWWRKcOzJ3PaPcPEIcw"
 
@@ -29,7 +36,8 @@ async def send_message():
                 await bot.send_message(
                     chat_id="-1001908502023",
                     text=message["data"],
-                    parse_mode=ParseMode.HTML,
+                    # entities=,
+                    # parse_mode=
                 )
 
 
@@ -40,5 +48,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logger.info("Starting the application")
     asyncio.run(main())

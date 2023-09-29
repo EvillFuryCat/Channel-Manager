@@ -1,5 +1,6 @@
 import os
 from typing import Any
+from db.db import RedisManager
 import openai
 
 # GPT = env.GPT_KEY
@@ -11,11 +12,14 @@ class GPTAnalytics:
         self.api_key = api_key
         openai.api_key = api_key
 
-    def chat_with_model(self, prompt, user_msg: str) -> Any:
-        system_msg = "You are a helpful assistant who answers in just three words"
+    # def listen_сhannel(self):
+
+    def chat_with_model(
+        self, system_message: str, prompt: str, user_message: str
+    ) -> Any:
         messages = [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": f"{prompt}\n{user_msg}"},
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": f"{prompt}\n{user_message}"},
         ]
 
         completion = openai.ChatCompletion.create(

@@ -1,8 +1,8 @@
 version: '1.0'
 
 services:
-  utils:
-    container_name: CHANNEL_MANAGER
+  backend:
+    container_name: backend
     build: .
     volumes:
       - ~/.ssh:/root/.ssh
@@ -19,7 +19,9 @@ services:
       - .env
     command: python3 main.py
   bot:
+    container_name: bot
   gpt:
+    container_name: ChatGPT
   redis:
     image: redis:latest
     container_name: redis

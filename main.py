@@ -1,33 +1,40 @@
 import env
 import logging
-import asyncio
+from telethon import TelegramClient, events
 
-from utils.utils import get_list_channel_messages, text_preparation, categorize
+from backend.utils import (
+    text_preparation,
+    categorize,
+    rewrite,
+)
 
 
 API_ID = env.API_TOKEN
 API_HASH = env.API_HASH
+CHANNELS = env.CHANNELS
 
 logging.basicConfig(
-    format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s", level=logging.WARNING
+    filename="log.json",
+    format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
+    level=logging.WARNING,
 )
 
+logger = logging.getLogger(__name__)
 
-async def main():
-    id, posts = await get_list_channel_messages(API_ID, API_HASH)
-    ready_text = text_preparation(posts)
-    define_category = await categorize(id, ready_text)
+client = TelegramClient("session_name", API_ID, API_HASH)
 
 
-#asyncio.run(main())
-# schedule.every(5).minutes.do(main)
+@client.on(events.NewMessage(chats=(CHANNELS)))
+async def normal_handler(event):
+    message = event.message.to_dict()["message"]
+    post_id = event.message.to_dict()["id"]
+    ready_text = text_preparation(message)
+    define_category = await categorize(post_id, ready_text)
+    if define_category:
+        await rewrite(define_category)
 
-# while True:
-#    schedule.run_pending()
-#    time.sleep(1)
-
-# asyncio.run(categorize(API_ID, API_HASH))
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    asyncio.run(main())
+    logger.info("Starting the application")
+    client.start()
+    client.run_until_disconnected()

@@ -1,4 +1,6 @@
 ./__pycache__/
+**/log.json
+log.json
 
 #enviroments
 .env

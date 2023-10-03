@@ -1,30 +1,73 @@
 version: '1.0'
 
 services:
-  backend:
-    container_name: backend
+  bot:
+    container_name: bot_
     build: .
     volumes:
       - ~/.ssh:/root/.ssh
       - ~/.bash_history:/root/.bash_history
       - .:/app
-    ports:
-      - 8000:8000
     environment:
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+      BOT_TOKEN: ${BOT_TOKEN}
+      TELEGRAM_CHANNEL_ID: ${TELEGRAM_CHANNEL_ID}
+      HOST: ${HOST}
+      PORT: ${PORT}
+      DB: ${DB}
     depends_on:
       - redis
     env_file:
       - .env
-    command: python3 main.py
-  bot:
-    container_name: bot
-  gpt:
-    container_name: ChatGPT
+    command: python3 bot/bot.py
+  backend:
+    container_name: backend_
+    build: .
+    volumes:
+      - ~/.ssh:/root/.ssh
+      - ~/.bash_history:/root/.bash_history
+      - .:/app
+    environment:
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_CHANNELS: ${TELEGRAM_CHANNELS}
+      SESSION_NAME: ${SESSION_NAME}
+      HOST: ${HOST}
+      PORT: ${PORT}
+      DB: ${DB}
+      TIME_LIFE: ${TIME_LIFE}
+    depends_on:
+      - chat_gpt
+      - bot
+      - redis
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+    attach: true
+    command: python3 backend/main.py
+  chat_gpt:
+    container_name: chat_gpt
+    build: .
+    volumes:
+      - ~/.ssh:/root/.ssh
+      - ~/.bash_history:/root/.bash_history
+      - .:/app
+    environment:
+      GPT_KEY: ${GPT_KEY}
+      PROMPT_FOR_CATEGORY: ${PROMPT_FOR_CATEGORY}
+      PROMPT_FOR_REWRITE: ${PROMPT_FOR_REWRITE}
+      SYSTEM_MESSAGE_FOR_REWRITE: ${SYSTEM_MESSAGE_FOR_REWRITE}
+      SYSTEM_MESSAGE_FOR_CATEGORY: ${SYSTEM_MESSAGE_FOR_CATEGORY}
+      HOST: ${HOST}
+      PORT: ${PORT}
+      DB: ${DB}
+    depends_on:
+      - bot
+      - redis
+    env_file:
+      - .env
+    command: python3 chat_gpt/gpt.py
   redis:
     image: redis:latest
-    container_name: redis
-    restart: unless-stopped
     ports:
       - 6379:6379

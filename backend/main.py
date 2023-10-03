@@ -1,30 +1,31 @@
-import env
 import logging
+import os
 from telethon import TelegramClient, events
 
-from backend.utils import (
+from utils import (
     text_preparation,
     categorize,
     rewrite,
 )
 
 
-API_ID = env.API_TOKEN
-API_HASH = env.API_HASH
-CHANNELS = env.CHANNELS
+TELEGRAM_API_ID = os.getenv("TELEGRAM_API_ID")
+TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH")
+TELEGRAM_CHANNELS: list = os.getenv("TELEGRAM_CHANNELS").split(",")
+SESSION_NAME = os.getenv("SESSION_NAME")
+
+logger = logging.getLogger(__name__)
 
 logging.basicConfig(
-    filename="log.json",
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
     level=logging.WARNING,
 )
 
-logger = logging.getLogger(__name__)
 
-client = TelegramClient("session_name", API_ID, API_HASH)
+client = TelegramClient(SESSION_NAME, TELEGRAM_API_ID, TELEGRAM_API_HASH)
 
 
-@client.on(events.NewMessage(chats=(CHANNELS)))
+@client.on(events.NewMessage(TELEGRAM_CHANNELS))
 async def normal_handler(event):
     message = event.message.to_dict()["message"]
     post_id = event.message.to_dict()["id"]

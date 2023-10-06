@@ -13,6 +13,7 @@ HOST: str = os.getenv("HOST")
 PORT: int = os.getenv("PORT")
 DB: int = os.getenv("DB")
 TELEGRAM_CHANNEL_ID: str = os.getenv("TELEGRAM_CHANNEL_ID")
+DEBUG = os.getenv("DEBUG")
 
 logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
@@ -36,12 +37,20 @@ async def send_message():
                 and message["channel"] == b"my_channel"
                 and message["data"].decode("utf-8") != ""
             ):
-                await bot.send_message(
-                    chat_id=TELEGRAM_CHANNEL_ID,
-                    text=message["data"],
-                    # entities=,
-                    # parse_mode=
-                )
+                try:
+                    if DEBUG == "True":
+                        message_debug = message["data"].decode("utf-8")
+                        print(
+                            f"### Так выглядит рерайт после передачи из редиса в телеграм бота для поста:\n {message_debug}"
+                        )
+                    await bot.send_message(
+                        chat_id=TELEGRAM_CHANNEL_ID,
+                        text=message["data"],
+                        # entities=,
+                        # parse_mode=
+                    )
+                except Exception as e:
+                    print(f"Произошла ошибка: {str(e)}")
 
 
 async def main():

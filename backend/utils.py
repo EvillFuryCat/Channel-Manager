@@ -1,17 +1,24 @@
 from db.db import RedisManager
 import os
+import tiktoken
 
 
 HOST: str = os.getenv("HOST")
 PORT: int = os.getenv("PORT")
 DB: int = os.getenv("DB")
 TIME_LIFE: int = os.getenv("TIME_LIFE")
+DEBUG = os.getenv("DEBUG")
 
 
-def text_preparation(post: str):
-    lines = post.strip().split("\n")
-    aligned_text = "".join(line.strip() for line in lines)
-    return aligned_text
+def text_preparation(post: str, max_tokens: int = 4096):
+    encoding = tiktoken.get_encoding("cl100k_base")
+    count_token = len(encoding.encode(post))
+    if count_token >= max_tokens:
+        while len(count_token) > 500:
+            count_token.pop()
+        allowed_text_length = encoding.decode(count_token)
+        return allowed_text_length
+    return post
 
 
 async def rewrite(text: str):
@@ -56,6 +63,13 @@ async def categorize(id_post, post):
                 ):
                     response = message["data"].decode("utf-8")
                     if check_similarity(redis, response) is True:
-                        pass
+                        if DEBUG == "True":
+                            print(
+                                f"### Такие тезисы уже существуют! Не сохраняю!\n{response}"
+                            )
+                            break
+                        break
                     redis.save_in_redis(response, post, 259200)
+                    if DEBUG == "True":
+                        print(f"### Тезисы, которые выделил ChatGPT:\n{response}")
                     return post

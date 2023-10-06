@@ -13,11 +13,12 @@ SYSTEM_MESSAGE_FOR_CATEGORY: str = os.getenv("SYSTEM_MESSAGE_FOR_CATEGORY")
 HOST: str = os.getenv("HOST")
 PORT: int = os.getenv("PORT")
 DB: int = os.getenv("DB")
+DEBUG = os.getenv("DEBUG")
 
 
 logging.basicConfig(
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
-    level=logging.INFO,
+    level=logging.WARNING,
 )
 
 logger = logging.getLogger(__name__)
@@ -47,28 +48,39 @@ class GPTAnalytics:
             )
 
             for message in pubsub.listen():
-                if (
-                    message["type"] == "message"
-                    and message["data"].decode("utf-8") != ""
-                ):
-                    channel = message["channel"].decode("utf-8")
-                    data = message["data"].decode("utf-8")
-                    if channel == "post_to_category_channel_for_gpt":
-                        user_message = data
-                        response = await self.chat_with_model(
-                            SYSTEM_MESSAGE_FOR_CATEGORY,
-                            PROMPT_FOR_CATEGORY,
-                            user_message,
-                        )
-                        if response:
-                            redis.publish("get_from_category_channel_gpt", response)
-                    elif channel == "post_for_rewriting_in_gpt_channel":
-                        user_message = data
-                        response = await self.chat_with_model(
-                            SYSTEM_MESSAGE_FOR_REWRITE, PROMPT_FOR_REWRITE, user_message
-                        )
-                        if response:
-                            redis.publish("my_channel", response)
+                try:
+                    if (
+                        message["type"] == "message"
+                        and message["data"].decode("utf-8") != ""
+                    ):
+                        channel = message["channel"].decode("utf-8")
+                        data = message["data"].decode("utf-8")
+                        if channel == "post_to_category_channel_for_gpt":
+                            user_message = data
+                            response = await self.chat_with_model(
+                                SYSTEM_MESSAGE_FOR_CATEGORY,
+                                PROMPT_FOR_CATEGORY,
+                                user_message,
+                            )
+                            if response:
+                                redis.publish("get_from_category_channel_gpt", response)
+                        elif channel == "post_for_rewriting_in_gpt_channel":
+                            if DEBUG == "True":
+                                print(
+                                    f"### Такой текст получает ChatGPT для рерайта:\n{data}"
+                                )
+                            user_message = data
+                            response = await self.chat_with_model(
+                                SYSTEM_MESSAGE_FOR_REWRITE,
+                                PROMPT_FOR_REWRITE,
+                                user_message,
+                            )
+                            if response:
+                                if DEBUG == "True":
+                                    print(f"### Это рерайт ChatGPT:\n{response}")
+                                redis.publish("my_channel", response)
+                except Exception as e:
+                    print("Произошла ошибка:", e)
 
     async def chat_with_model(
         self, system_message: str, prompt: str, user_message: str

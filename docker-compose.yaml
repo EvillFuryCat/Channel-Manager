@@ -9,6 +9,7 @@ services:
       - ~/.bash_history:/root/.bash_history
       - .:/app
     environment:
+      DEBUG: ${DEBUG}
       BOT_TOKEN: ${BOT_TOKEN}
       TELEGRAM_CHANNEL_ID: ${TELEGRAM_CHANNEL_ID}
       HOST: ${HOST}
@@ -27,6 +28,7 @@ services:
       - ~/.bash_history:/root/.bash_history
       - .:/app
     environment:
+      DEBUG: ${DEBUG}
       TELEGRAM_API_ID: ${TELEGRAM_API_ID}
       TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
       TELEGRAM_CHANNELS: ${TELEGRAM_CHANNELS}
@@ -43,7 +45,6 @@ services:
       - .env
     stdin_open: true
     tty: true
-    attach: true
     command: python3 backend/main.py
   chat_gpt:
     container_name: chat_gpt
@@ -53,6 +54,7 @@ services:
       - ~/.bash_history:/root/.bash_history
       - .:/app
     environment:
+      DEBUG: ${DEBUG}
       GPT_KEY: ${GPT_KEY}
       PROMPT_FOR_CATEGORY: ${PROMPT_FOR_CATEGORY}
       PROMPT_FOR_REWRITE: ${PROMPT_FOR_REWRITE}

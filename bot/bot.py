@@ -4,6 +4,7 @@ import os
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import MessageEntity
+from colorama import Back, init
 
 from db.db import RedisManager
 
@@ -40,9 +41,9 @@ async def send_message():
                 try:
                     if DEBUG == "True":
                         message_debug = message["data"].decode("utf-8")
-                        print(
-                            f"### Так выглядит рерайт после передачи из редиса в телеграм бота для поста:\n {message_debug}"
-                        )
+                        init(autoreset=True)
+                        print(Back.YELLOW + "### Так выглядит рерайт после передачи из редиса в телеграм бота для поста:")
+                        print(message_debug)
                     await bot.send_message(
                         chat_id=TELEGRAM_CHANNEL_ID,
                         text=message["data"],

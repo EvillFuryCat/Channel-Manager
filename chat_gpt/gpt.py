@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import openai
+from colorama import Back, Fore, init
 
 from db.db import RedisManager
 
@@ -66,9 +67,11 @@ class GPTAnalytics:
                                 redis.publish("get_from_category_channel_gpt", response)
                         elif channel == "post_for_rewriting_in_gpt_channel":
                             if DEBUG == "True":
+                                init(autoreset=True)
                                 print(
-                                    f"### Такой текст получает ChatGPT для рерайта:\n{data}"
+                                    Fore.GREEN + Back.GREEN + "### Такой текст получает ChatGPT для рерайта:"
                                 )
+                                print(data)
                             user_message = data
                             response = await self.chat_with_model(
                                 SYSTEM_MESSAGE_FOR_REWRITE,
@@ -77,7 +80,9 @@ class GPTAnalytics:
                             )
                             if response:
                                 if DEBUG == "True":
-                                    print(f"### Это рерайт ChatGPT:\n{response}")
+                                    init(autoreset=True)
+                                    print(Back.GREEN + "### Это рерайт ChatGPT:")
+                                    print(response)
                                 redis.publish("my_channel", response)
                 except Exception as e:
                     print("Произошла ошибка:", e)
@@ -100,6 +105,8 @@ class GPTAnalytics:
 
 
 if __name__ == "__main__":
+    if DEBUG == "True":
+        init(autoreset=True)
     logger.info("Starting the application")
     analytics = GPTAnalytics(GPT_KEY, redis_host=HOST, redis_port=PORT, redis_db=DB)
     loop = asyncio.get_event_loop()

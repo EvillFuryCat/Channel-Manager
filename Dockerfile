@@ -26,4 +26,3 @@ WORKDIR /app
 
 COPY pyproject.toml poetry.lock ./
 RUN poetry install  --no-interaction --no-ansi
-CMD [ "python3", "main.py"]

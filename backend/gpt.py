@@ -105,7 +105,7 @@ class GPTAnalytics:
             model="gpt-3.5-turbo", messages=messages
         )
         chat_response = completion.choices[0].message.content
-        messages.append([{"role": "assistant", "content": chat_response}])
+        messages.append({"role": "assistant", "content": chat_response})
 
         return chat_response
 

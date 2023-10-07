@@ -2,13 +2,9 @@ import logging
 import os
 from colorama import Back, init
 from telethon import TelegramClient, events
+import json
 
 from db.db import RedisManager
-from utils import (
-    text_preparation,
-    categorize,
-    rewrite,
-)
 
 
 HOST: str = os.getenv("HOST")
@@ -28,7 +24,6 @@ logging.basicConfig(
     level=logging.WARNING,
 )
 
-
 client = TelegramClient(SESSION_NAME, TELEGRAM_API_ID, TELEGRAM_API_HASH)
 
 
@@ -37,17 +32,16 @@ async def normal_handler(event):
     with RedisManager(host=HOST, port=PORT, db=DB) as redis:
         try:
             message = event.message.to_dict()["message"]
-            post_id = event.message.to_dict()["id"]
+            message_id = event.message.to_dict()["id"]
             if DEBUG == "True":
                 init(autoreset=True)
-                print(Back.CYAN + "### Новый пост в телеграм канале:")
+                print(Back.GREEN + "### Новый пост в телеграм канале:" + Back.RESET)
                 print(message)
-            ready_text = text_preparation(message)
-            define_category = await categorize(redis, post_id, ready_text)
-            if define_category:
-                await rewrite(redis, define_category)
+            data = {"message": message, "message_id": message_id}
+            json_data = json.dumps(data)
+            redis.publish("post_for_in_gpt_channel", json_data)
         except Exception as e:
-            logger.error(f"An error occurred: {str(e)}")
+            logger.error(f"### An error occurred: {str(e)}")
 
 
 if __name__ == "__main__":

@@ -20,8 +20,8 @@ services:
     env_file:
       - .env
     command: python3 bot/bot.py
-  backend:
-    container_name: backend_
+  client:
+    container_name: client
     build: .
     volumes:
       - ~/.ssh:/root/.ssh
@@ -38,16 +38,16 @@ services:
       DB: ${DB}
       TIME_LIFE: ${TIME_LIFE}
     depends_on:
-      - chat_gpt
+      - backend
       - bot
       - redis
     env_file:
       - .env
     stdin_open: true
     tty: true
-    command: python3 backend/main.py
-  chat_gpt:
-    container_name: chat_gpt
+    command: python3 client/main.py
+  backend:
+    container_name: backend
     build: .
     volumes:
       - ~/.ssh:/root/.ssh
@@ -68,7 +68,7 @@ services:
       - redis
     env_file:
       - .env
-    command: python3 chat_gpt/gpt.py
+    command: python3 backend/gpt.py
   redis:
     image: redis:latest
     ports:

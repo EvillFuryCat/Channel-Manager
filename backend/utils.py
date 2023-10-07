@@ -1,14 +1,21 @@
 from db.db import RedisManager
 
+import json
 import os
 import tiktoken
-from colorama import Back, init
 
 
 TIME_LIFE: int = os.getenv("TIME_LIFE")
 DEBUG = os.getenv("DEBUG")
 
 encoding = tiktoken.get_encoding("cl100k_base")
+
+
+def deserialize(message):
+    data = json.loads(message)
+    message_id = data["message_id"]
+    post = data["message"]
+    return message_id, post
 
 
 def text_preparation(post: str, max_tokens: int = 4096):
@@ -19,10 +26,6 @@ def text_preparation(post: str, max_tokens: int = 4096):
         allowed_text_length = encoding.decode(count_token)
         return allowed_text_length
     return post
-
-
-async def rewrite(redis: RedisManager, text: str):
-    redis.publish("post_for_rewriting_in_gpt_channel", text)
 
 
 def check_similarity(db: RedisManager, target_string: str) -> bool:
@@ -46,31 +49,3 @@ async def id_check(redis: RedisManager, id_post: int, post: str) -> bool:
         return True
     else:
         return False
-
-
-async def categorize(redis: RedisManager, id_post, post):
-    if await id_check(redis, id_post, post):
-        redis.publish("post_to_category_channel_for_gpt", post)
-        pubsub = redis.pubsub()
-        pubsub.subscribe("get_from_category_channel_gpt")
-        for message in pubsub.listen():
-            if (
-                message["type"] == "message"
-                and message["data"].decode("utf-8") != ""
-            ):
-                response = message["data"].decode("utf-8")
-                if check_similarity(redis, response) is True:
-                    if DEBUG == "True":
-                        init()
-                        print(
-                            Back.CYAN + "### Такие тезисы уже существуют! Не сохраняю!"
-                        )
-                        print(response)
-                        break
-                    break
-                redis.save_in_redis(response, post, TIME_LIFE)
-                if DEBUG == "True":
-                    init(autoreset=True)
-                    print(Back.CYAN + "### Тезисы, которые выделил ChatGPT:")
-                    print(response)
-                return post

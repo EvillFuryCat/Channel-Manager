@@ -42,7 +42,10 @@ async def send_message():
                     if DEBUG == "True":
                         message_debug = message["data"].decode("utf-8")
                         init(autoreset=True)
-                        print(Back.YELLOW + "### Так выглядит рерайт после передачи из редиса в телеграм бота для поста:")
+                        print(
+                            Back.YELLOW
+                            + "### Так выглядит рерайт после передачи из редиса в телеграм бота для поста:"
+                        )
                         print(message_debug)
                     await bot.send_message(
                         chat_id=TELEGRAM_CHANNEL_ID,
@@ -51,7 +54,7 @@ async def send_message():
                         # parse_mode=
                     )
                 except Exception as e:
-                    print(f"Произошла ошибка: {str(e)}")
+                    print(f"### Произошла ошибка: {str(e)}")
 
 
 async def main():

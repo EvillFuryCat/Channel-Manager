@@ -28,3 +28,6 @@ class RedisManager:
 
     def pubsub(self):
         return self.redis.pubsub()
+    
+    def exists(self, *names):
+        return self.redis.exists(*names)

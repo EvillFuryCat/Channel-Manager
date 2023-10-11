@@ -6,6 +6,7 @@ log.json
 .env
 env.py
 @FuryCats.session
+session_name.session
 # Editors
 .vscode/
 .idea/

@@ -17,6 +17,7 @@ TELEGRAM_CHANNEL_ID: str = os.getenv("TELEGRAM_CHANNEL_ID")
 DEBUG = os.getenv("DEBUG")
 
 logging.basicConfig(
+    filename="bot_log.json",
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
     level=logging.INFO,
 )
@@ -54,8 +55,7 @@ async def send_message():
                         # parse_mode=
                     )
                 except Exception as e:
-                    print(f"### Произошла ошибка: {str(e)}")
-
+                    logger.error(f"Произошла ошибка: {str(e)}")
 
 async def main():
     await send_message()

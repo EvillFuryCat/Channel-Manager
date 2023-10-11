@@ -2,13 +2,10 @@ from db.db import RedisManager
 
 import json
 import os
-import tiktoken
 
 
 TIME_LIFE: int = os.getenv("TIME_LIFE")
 DEBUG = os.getenv("DEBUG")
-
-encoding = tiktoken.get_encoding("cl100k_base")
 
 
 def deserialize(message):
@@ -18,29 +15,21 @@ def deserialize(message):
     return message_id, post
 
 
-def text_preparation(post: str, max_tokens: int = 4096):
-    count_token = len(encoding.encode(post))
+def text_preparation(post: str, token_counter, max_tokens: int = 4096):
+    count_token = len(token_counter.encode(post))
     if count_token >= max_tokens:
-        while len(count_token) > 500:
+        while len(count_token) > max:
             count_token.pop()
         allowed_text_length = encoding.decode(count_token)
         return allowed_text_length
     return post
 
 
-def check_similarity(db: RedisManager, target_string: str) -> bool:
-    if db.get_data(target_string) is not None:
+async def check_similarity(redis: RedisManager, target_string: str) -> bool:
+    if redis.exists(target_string) > 0:
         return True
     else:
-        target_words = target_string.split(", ")
-        keys = db.get_keys()
-        for target_key in target_words:
-            for key in keys:
-                key = key.decode("utf-8").split(", ")
-                if target_key in key:
-                    return True
-
-    return False
+        return False
 
 
 async def id_check(redis: RedisManager, id_post: int, post: str) -> bool:

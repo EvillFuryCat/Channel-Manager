@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import tiktoken
 import openai
 from colorama import Fore, Back, init
 
@@ -25,6 +26,7 @@ TIME_LIFE: int = os.getenv("TIME_LIFE")
 
 
 logging.basicConfig(
+    filename="gpt_log.json",
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
     level=logging.WARNING,
 )
@@ -45,8 +47,10 @@ class GPTAnalytics:
         self.redis_port = redis_port
         self.redis_db = redis_db
         openai.api_key = api_key
+        
 
     async def listen_channel(self):
+        encoding = tiktoken.get_encoding("cl100k_base")
         with RedisManager(
             host=self.redis_host, port=self.redis_port, db=self.redis_db
         ) as redis:
@@ -60,54 +64,54 @@ class GPTAnalytics:
                     ):
                         data = message["data"].decode("utf-8")
                         post_id, post = deserialize(data)
-                        ready_text = text_preparation(post)
-                        if await id_check(redis, post_id, ready_text):
-                            response = await self.chat_with_model(
-                                SYSTEM_MESSAGE_FOR_CATEGORY,
-                                PROMPT_FOR_CATEGORY,
-                                ready_text,
-                            )
-
-                            if check_similarity(redis, response) is True:
-                                if DEBUG == "True":
-                                    init(autoreset=True)
-                                    print(
-                                        Fore.CYAN
-                                        + "### Такие тезисы уже существуют! Не сохраняю!"
-                                    )
-                                    print(response)
-                                continue
+                        ready_text = text_preparation(post, encoding)
+                        response: str = await self.chat_with_model(
+                            SYSTEM_MESSAGE_FOR_CATEGORY,
+                            PROMPT_FOR_CATEGORY,
+                            ready_text,
+                        )
+                        if await check_similarity(redis, response.lower()) is True:
                             if DEBUG == "True":
                                 init(autoreset=True)
                                 print(
-                                    Back.CYAN + "### Тезисы, которые выделил ChatGPT:"
+                                    Fore.CYAN
+                                    + "### Такие тезисы уже существуют! Не сохраняю!"
                                 )
                                 print(response)
-                            redis.save_in_redis(response, ready_text, TIME_LIFE)
-                            rewrite = await self.chat_with_model(
-                                SYSTEM_MESSAGE_FOR_REWRITE,
-                                PROMPT_FOR_REWRITE,
-                                ready_text,
+                            continue
+                        if DEBUG == "True":
+                            init(autoreset=True)
+                            print(
+                                Back.CYAN + "### Тезисы, которые выделил ChatGPT:"
                             )
-                            redis.publish("my_channel", rewrite)
+                            print(response)
+                        redis.save_in_redis(response.lower(), ready_text, TIME_LIFE)
+                        rewrite = await self.chat_with_model(
+                            SYSTEM_MESSAGE_FOR_REWRITE,
+                            PROMPT_FOR_REWRITE,
+                            ready_text,
+                        )
+                        redis.publish("my_channel", rewrite)
                 except Exception as e:
-                    print("### Произошла ошибка:", e)
+                    logger.error(f"Произошла ошибка: {str(e)}")
 
     async def chat_with_model(
         self, system_message: str, prompt: str, user_message: str
     ):
-        messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": f"{prompt}\n{user_message}"},
-        ]
+        while True:
+        
+            messages = [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": f"{prompt}\n{user_message}"},
+            ]
 
-        completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo", messages=messages
-        )
-        chat_response = completion.choices[0].message.content
-        messages.append({"role": "assistant", "content": chat_response})
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo", messages=messages
+            )
+            chat_response = completion.choices[0].message.content
+            messages.append({"role": "assistant", "content": chat_response})
 
-        return chat_response
+            return chat_response
 
 
 if __name__ == "__main__":

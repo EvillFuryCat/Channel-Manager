@@ -20,6 +20,7 @@ DEBUG = os.getenv("DEBUG")
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
+    filename="client_log.json",
     format="[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s",
     level=logging.WARNING,
 )
